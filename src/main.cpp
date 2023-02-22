@@ -1,4 +1,4 @@
-/*
+/* Opgave 6.5 - MKRWifi1010 sender Telemetry til HiveMQ
   ArduinoMqttClient for HiveMQ Cloud
   The circuit: MKRWiFi1010
   This example connects to HiveMQ MQTT broker and subscribes to a single topic (inTopic),
@@ -43,9 +43,7 @@ void setup()
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial)
-  {
-    ;
-  }
+  {;}
 
   dht.begin();
   connect();

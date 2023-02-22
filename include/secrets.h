@@ -1,11 +1,15 @@
-#define SECRET_SSID "<SSID>"
-#define SECRET_PASS "<Password>"
+#define SECRET_SSID "SibirienAP"
+#define SECRET_PASS "Siberia51244"
+
+// #define SECRET_SSID "ORBI30"
+// #define SECRET_PASS "15711571"
 
 // Broker URL findes i console.hivemq.cloud under Manage Cluster
-#define BROKER "<URL for Cluster>"
+#define BROKER "4611dbea64354d3f81615ee6651bc7aa.s1.eu.hivemq.cloud"
 #define CLIENT_ID "MKRWiFi1010"
-#define HIVEMQ_USERNAME "<Credentials Username>"
-#define HIVEMQ_PASSWORD "<Credentials Password>"
+#define HIVEMQ_USERNAME "MKRWiFi1010#1"
+#define HIVEMQ_PASSWORD "qfh3pdw-WKH1eud9xnv"
 
 void onMqttMessage(int);
 void connect();
+void publishValues();

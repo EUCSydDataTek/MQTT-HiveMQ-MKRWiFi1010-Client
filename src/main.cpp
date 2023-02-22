@@ -10,113 +10,144 @@
 #include <Arduino.h>
 #include <ArduinoMqttClient.h>
 #include <WiFiNINA.h>
+#include <DHT.h>
 #include "secrets.h"
 
-char ssid[] = SECRET_SSID;  
-char pass[] = SECRET_PASS;  
+char ssid[] = SECRET_SSID;
+char pass[] = SECRET_PASS;
 char client_id[] = CLIENT_ID;
 char hivemq_username[] = HIVEMQ_USERNAME;
-char hivemq_password[] = HIVEMQ_PASSWORD; 
- 
-const char broker[] = BROKER; 
-int        port     = 8883;
+char hivemq_password[] = HIVEMQ_PASSWORD;
 
-const char inTopic[]   = "arduino/in";
-const char outTopic[]  = "arduino/out";
+const char broker[] = BROKER;
+int port = 8883;
+
+const char inTopic[] = "arduino/in";
+const char outTopic[] = "arduino/out";
 
 const long interval = 10000;
 unsigned long previousMillis = 0;
 int count = 0;
 
+// Configuration of DHT 11
+#define DHTPIN 7      // Digital pin connected to the DHT sensor
+#define DHTTYPE DHT11 // DHT 11
+
 WiFiSSLClient wifiClient;
 MqttClient mqttClient(wifiClient);
+DHT dht(DHTPIN, DHTTYPE);
 
 /////////////////////////////////// SETUP ///////////////////////////////////////
-void setup() 
+void setup()
 {
-  //Initialize serial and wait for port to open:
+  // Initialize serial and wait for port to open:
   Serial.begin(9600);
-  while (!Serial) {;}
+  while (!Serial)
+  {
+    ;
+  }
 
+  dht.begin();
   connect();
-  
+
   // set the message receive callback
   mqttClient.onMessage(onMqttMessage);
 
   mqttClient.subscribe(inTopic);
-  Serial.print("Subscribing to topic: "); Serial.println(inTopic); Serial.println();
+  Serial.print("Subscribing to topic: ");
+  Serial.println(inTopic);
+  Serial.println();
 
   Serial.println();
-  Serial.print("Waiting for messages on topic: "); Serial.println(inTopic); Serial.println();
+  Serial.print("Waiting for messages on topic: ");
+  Serial.println(inTopic);
+  Serial.println();
 }
 
 //////////////////////////////// LOOP /////////////////////////////////////////////
-void loop() 
+void loop()
 {
   mqttClient.poll();
 
   unsigned long currentMillis = millis();
 
-  if (currentMillis - previousMillis >= interval) 
+  if (currentMillis - previousMillis >= interval)
   {
     previousMillis = currentMillis;
 
-    String payload;
-    payload += "Hello world!";
-    payload += " ";
-    payload += count;
-
-    Serial.print("Sending message to topic: "); Serial.println(outTopic); Serial.println(payload);
-
-    // send message, the Print interface can be used to set the message contents
-    // in this case we know the size ahead of time, so the message payload can be streamed
-
-    mqttClient.beginMessage(outTopic);
-    mqttClient.print(payload);
-    mqttClient.endMessage();
-    Serial.println();
-
-    count++;
+    previousMillis = currentMillis;
+    publishValues();
   }
 }
 
-void onMqttMessage(int messageSize) 
+void onMqttMessage(int messageSize)
 {
   // we received a message, print out the topic and contents
-  Serial.print("Received a message with topic '"); Serial.print(mqttClient.messageTopic());
-  Serial.print("', length "); Serial.print(messageSize); Serial.println(" bytes:");
+  Serial.print("Received a message with topic '");
+  Serial.print(mqttClient.messageTopic());
+  Serial.print("', length ");
+  Serial.print(messageSize);
+  Serial.println(" bytes:");
 
   // use the Stream interface to print the contents
-  while (mqttClient.available()) 
+  while (mqttClient.available())
   {
     Serial.print((char)mqttClient.read());
   }
-  Serial.println(); Serial.println();
+  Serial.println();
+  Serial.println();
 }
 
 void connect()
 {
   // attempt to connect to WiFi network:
-  Serial.print("Attempting to connect to WPA SSID: "); Serial.println(ssid);
-  while (WiFi.begin(ssid, pass) != WL_CONNECTED) 
+  Serial.print("Attempting to connect to WPA SSID: ");
+  Serial.println(ssid);
+  while (WiFi.begin(ssid, pass) != WL_CONNECTED)
   {
     Serial.print(".");
     delay(5000);
   }
-  Serial.println("You're connected to the network");Serial.println();
+  Serial.println("You're connected to the network");
+  Serial.println();
 
   // Each client must have a unique client ID
   mqttClient.setId(client_id);
 
   mqttClient.setUsernamePassword(hivemq_username, hivemq_password);
 
-  Serial.print("Attempting to connect to the MQTT broker: "); Serial.println(broker);
+  Serial.print("Attempting to connect to the MQTT broker: ");
+  Serial.println(broker);
 
-  if (!mqttClient.connect(broker, port)) 
+  if (!mqttClient.connect(broker, port))
   {
-    Serial.print("MQTT connection failed! Error code = "); Serial.println(mqttClient.connectError());
-    while (1);
+    Serial.print("MQTT connection failed! Error code = ");
+    Serial.println(mqttClient.connectError());
+    while (1)
+      ;
   }
 
-  Serial.println("You're connected to the MQTT broker!"); Serial.println();
+  Serial.println("You're connected to the MQTT broker!");
+  Serial.println();
+}
+
+void publishValues()
+{
+  int hum = (int)dht.readHumidity();     // Read humidity
+  int temp = (int)dht.readTemperature(); // Read temperature as Celsius (the default)
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(hum) || isnan(temp))
+  {
+    Serial.println(F("Failed to read from DHT sensor!"));
+    return;
+  }
+
+  count++;
+  String payload = "#" + (String)count + " Temp = " + temp + " Hum = " + hum;
+  Serial.println(payload);
+
+  mqttClient.beginMessage(outTopic);
+  mqttClient.print(payload);
+  mqttClient.endMessage();
 }

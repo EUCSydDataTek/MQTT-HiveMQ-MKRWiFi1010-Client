@@ -144,8 +144,8 @@ void connectMQTT()
 
 void publishMessage()
 {
-  int hum = (int)dht.readHumidity();     // Read humidity
-  int temp = (int)dht.readTemperature(); // Read temperature as Celsius (the default)
+  float hum = dht.readHumidity();     // Read humidity
+  float temp = dht.readTemperature(); // Read temperature as Celsius (the default)
 
   // Check if any reads failed and exit early (to try again).
   if (isnan(hum) || isnan(temp))

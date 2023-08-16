@@ -6,6 +6,8 @@
   When a message is received it prints the message to the Serial Monitor,
   it uses the callback functionality of the library.
 
+  WDTZero: https://github.com/javos65/WDTZero
+
   Use together with the project MqttWebApiInfluxDB
 */
 #include <Arduino.h>
@@ -16,6 +18,7 @@
 #include <ArduinoJson.h>
 #include <Servo.h>
 #include "secrets.h"
+#include <WDTZero.h>
 
 char ssid[] = SECRET_SSID;
 char pass[] = SECRET_PASS;
@@ -26,7 +29,7 @@ char hivemq_password[] = HIVEMQ_PASSWORD;
 const char broker[] = BROKER;
 int port = 8883;
 
-const char inTopic[] = "led";
+const char inTopic[] = "servo";
 const char outTopic[] = "telemetry";
 
 int        servoport = 10;
@@ -44,6 +47,7 @@ WiFiSSLClient wifiClient;
 MqttClient mqttClient(wifiClient);
 DHT dht(DHTPIN, DHTTYPE);
 Servo myservo;
+WDTZero MyWatchDoggy; // Define WDT  
 
 /////////////////////////////////// SETUP ///////////////////////////////////////
 void setup()
@@ -56,10 +60,20 @@ void setup()
   WiFiDrv::pinMode(26, OUTPUT);
   WiFiDrv::pinMode(27, OUTPUT);
 
-  Serial.begin(9600);
+   int t = 20; //Initialize serial and wait for port to open, max 10 seconds
+   Serial.begin(9600);
+   while (!Serial) 
+   {
+    delay(500);
+    if ( (t--) == 0 ) break;
+  }
 
   dht.begin();
   myservo.attach(servoport);
+
+  Serial.print("\nWDTZero-Demo : Setup Soft Watchdog at 2 min interval\n"); 
+  MyWatchDoggy.attachShutdown(myshutdown);
+  MyWatchDoggy.setup(WDT_SOFTCYCLE2M);  // initialize WDT-softcounter refesh cycle on 2 min interval
 }
 
 //////////////////////////////// LOOP /////////////////////////////////////////////
@@ -165,6 +179,8 @@ void publishMessage()
   mqttClient.beginMessage(outTopic);
   mqttClient.print(payload);
   mqttClient.endMessage();
+
+  MyWatchDoggy.clear(); // Clear WatchDog
 }
 
 void onMqttMessage(int messageSize)
@@ -191,4 +207,9 @@ void onMqttMessage(int messageSize)
     myservo.write(180);
   }
   Serial.println();
+ }
+
+ void myshutdown()
+ {
+    Serial.print("\nWe gonna shut down ! ...");
  }

@@ -14,3 +14,4 @@ void connectWiFi();
 void connectMQTT();
 void publishMessage();
 void onMqttMessage(int);
+void myshutdown();

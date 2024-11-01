@@ -32,7 +32,7 @@ int port = 8883;
 const char inTopic[] = "servo";
 const char outTopic[] = "telemetry";
 
-int        servoport = 6;
+int        servoport = 8;
 
 unsigned long ledLastMillis = 0;
 unsigned long lastMillis = 0;

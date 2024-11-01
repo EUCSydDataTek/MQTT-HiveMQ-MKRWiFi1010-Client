@@ -1,8 +1,8 @@
-// #define SECRET_SSID "SibirienAP"
-// #define SECRET_PASS "Siberia51244"
+#define SECRET_SSID "SibirienAP"
+#define SECRET_PASS "Siberia51244"
 
-#define SECRET_SSID "ORBI30"
-#define SECRET_PASS "15711571"
+// #define SECRET_SSID "ORBI30"
+// #define SECRET_PASS "15711571"
 
 // Broker URL findes i console.hivemq.cloud under Manage Cluster
 #define BROKER "4611dbea64354d3f81615ee6651bc7aa.s1.eu.hivemq.cloud"

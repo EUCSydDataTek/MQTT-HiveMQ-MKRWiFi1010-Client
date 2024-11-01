@@ -1,4 +1,4 @@
-/* Opgave 8 - MKRWifi1010 sender Telemetry til HiveMQ
+/* Opgave 8 - MKRWifi1010 sender Telemetry til WebApiMqtt
   ArduinoMqttClient for HiveMQ Cloud
   The circuit: MKRWiFi1010
   This example connects to HiveMQ MQTT broker and subscribes to a single topic (led),
@@ -32,7 +32,7 @@ int port = 8883;
 const char inTopic[] = "servo";
 const char outTopic[] = "telemetry";
 
-int        servoport = 10;
+int        servoport = 6;
 
 unsigned long ledLastMillis = 0;
 unsigned long lastMillis = 0;
@@ -73,7 +73,7 @@ void setup()
 
   Serial.print("\nWDTZero-Demo : Setup Soft Watchdog at 2 min interval\n"); 
   MyWatchDoggy.attachShutdown(myshutdown);
-  MyWatchDoggy.setup(WDT_SOFTCYCLE2M);  // initialize WDT-softcounter refesh cycle on 2 min interval
+  MyWatchDoggy.setup(WDT_SOFTCYCLE16M);  // initialize WDT-softcounter refesh cycle on 2 min interval
 }
 
 //////////////////////////////// LOOP /////////////////////////////////////////////
@@ -141,8 +141,7 @@ void connectMQTT()
   {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.connectError());
-    while (1)
-      ;
+    while (1);
   }
 
   Serial.println("You're connected to the MQTT broker!\n");

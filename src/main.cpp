@@ -22,15 +22,15 @@
 
 char ssid[] = SECRET_SSID;
 char pass[] = SECRET_PASS;
+
 char client_id[] = CLIENT_ID;
 char hivemq_username[] = HIVEMQ_USERNAME;
 char hivemq_password[] = HIVEMQ_PASSWORD;
-
 const char broker[] = BROKER;
 int port = 8883;
 
-const char inTopic[] = "servo";
-const char outTopic[] = "telemetry";
+const char subscribeTopic[] = "servo";
+const char publishToken[] = "telemetry";
 
 int        servoport = 8;
 
@@ -52,21 +52,14 @@ WDTZero MyWatchDoggy; // Define WDT
 /////////////////////////////////// SETUP ///////////////////////////////////////
 void setup()
 {
-  delay(5000);  
-
   pinMode(LED_BUILTIN, OUTPUT);
   // RGB LEDS on board
   WiFiDrv::pinMode(25, OUTPUT);
   WiFiDrv::pinMode(26, OUTPUT);
   WiFiDrv::pinMode(27, OUTPUT);
 
-   int t = 20; //Initialize serial and wait for port to open, max 10 seconds
-   Serial.begin(9600);
-   while (!Serial) 
-   {
-    delay(500);
-    if ( (t--) == 0 ) break;
-  }
+  Serial.begin(9600);
+  while (!Serial); 
 
   dht.begin();
   myservo.attach(servoport);
@@ -149,10 +142,10 @@ void connectMQTT()
   // set the message receive callback
   mqttClient.onMessage(onMqttMessage);
 
-  mqttClient.subscribe(inTopic);
-  Serial.print("Subscribing to topic: ");Serial.println(inTopic);
+  mqttClient.subscribe(subscribeTopic);
+  Serial.print("Subscribing to topic: ");Serial.println(subscribeTopic);
 
-  Serial.print("Waiting for messages on topic: ");Serial.println(inTopic);Serial.println();
+  Serial.print("Waiting for messages on topic: ");Serial.println(subscribeTopic);Serial.println();
 }
 
 void publishMessage()
@@ -175,7 +168,7 @@ void publishMessage()
 
   Serial.println(payload);
 
-  mqttClient.beginMessage(outTopic);
+  mqttClient.beginMessage(publishToken);
   mqttClient.print(payload);
   mqttClient.endMessage();
 
@@ -191,7 +184,7 @@ void onMqttMessage(int messageSize)
   Serial.println(" bytes:");
 
  String msg = mqttClient.readString();
- Serial.println(msg);
+//  Serial.println(msg);
 
  if (msg == "on")
   {
@@ -208,7 +201,7 @@ void onMqttMessage(int messageSize)
   Serial.println();
  }
 
- void myshutdown()
- {
-    Serial.print("\nWe gonna shut down ! ...");
- }
+void myshutdown()
+{
+  Serial.print("\nWe gonna shut down ! ...");
+}
